@@ -1,12 +1,18 @@
 namespace Nancy.ViewEngines
 {
     using System.Collections.Generic;
+    using Elements;
 
     /// <summary>
     /// Defines the functionality of the context that is passed into a view engine when the view is requested to be rendered.
     /// </summary>
     public interface IRenderContext
     {
+        /// <summary>
+        /// Gets the element generator.
+        /// </summary>
+        IElementGenerator ElementGenerator { get; }
+
         /// <summary>
         /// Gets the view cache that is used by Nancy.
         /// </summary>

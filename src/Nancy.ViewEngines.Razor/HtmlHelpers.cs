@@ -3,6 +3,11 @@
     using System;
     using System.IO;
     using System.Web;
+    using System.Linq.Expressions;
+    using System.Reflection;
+    using System.Text;
+    using Nancy.Reflection;
+    using Nancy.Elements;
 
     /// <summary>
     /// Helpers to generate html content.
@@ -12,8 +17,8 @@
     {
         private readonly TModel model;
 
-        public readonly RazorViewEngine engine;
-        public readonly IRenderContext renderContext;
+        private readonly RazorViewEngine engine;
+        private readonly IRenderContext renderContext;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HtmlHelpers"/> class.
@@ -25,6 +30,21 @@
             this.engine = engine;
             this.renderContext = renderContext;
             this.model = model;
+        }
+
+        public IHtmlString DisplayFor(Expression<Func<TModel, object>> memberExpression)
+        {
+            return GenerateElement("Display", model, memberExpression);
+        }
+
+        public IHtmlString EditorFor(Expression<Func<TModel, object>> memberExpression)
+        {
+            return GenerateElement("Editor", model, memberExpression);
+        }
+
+        public IHtmlString LabelFor(Expression<Func<TModel, object>> memberExpression)
+        {
+            return GenerateElement("Label", model, memberExpression);
         }
 
         /// <summary>
@@ -76,6 +96,43 @@
             var tokenKeyValue = this.renderContext.GetCsrfToken();
 
             return new NonEncodedHtmlString(String.Format("<input type=\"hidden\" name=\"{0}\" value=\"{1}\"/>", tokenKeyValue.Key, tokenKeyValue.Value));
+        }
+
+        private IHtmlString GenerateElement(string generatorKey, TModel instance, Expression<Func<TModel, object>> memberExpression)
+        {
+            var elementContext = CreateElementContext(generatorKey, instance, memberExpression);
+
+            var element = renderContext.ElementGenerator.Generate(elementContext);
+
+            return new HtmlString(RenderElement(element));
+        }
+
+        private ElementContext CreateElementContext(string generatorKey, TModel instance, Expression<Func<TModel, object>> memberExpression)
+        {
+            var accessor = memberExpression.ToAccessor();
+
+            return new ElementContext(generatorKey, renderContext.ElementGenerator.GenerateName(accessor), instance, accessor);
+        }
+
+        private static MemberInfo GetMemberInfo(Expression<Func<TModel, object>> expression)
+        {
+            var member = expression.Body as MemberExpression;
+            if (member != null)
+                return member.Member;
+
+            throw new ArgumentException("Expression must be a MemberExpression", "expression");
+        }
+
+        private static string RenderElement(Element element)
+        {
+            var root = element.Root();
+
+            var sb = new StringBuilder();
+            using (var writer = new StringWriter(sb))
+            {
+                root.Render(writer);
+                return sb.ToString();
+            }
         }
     }
 }

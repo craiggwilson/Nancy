@@ -8,6 +8,7 @@
     using Nancy.ModelBinding;
     using Nancy.Conventions;
     using Nancy.ViewEngines;
+    using Nancy.Elements;
 
     /// <summary>
     /// Nancy bootstrapper base class
@@ -156,6 +157,14 @@
         protected virtual Type RootPathProvider
         {
             get { return AppDomainAssemblyTypeScanner.TypesOf<IRootPathProvider>(true).FirstOrDefault() ?? typeof(DefaultRootPathProvider); }
+        }
+
+        /// <summary>
+        /// Gets the element generator.
+        /// </summary>
+        protected virtual Type ElementGenerator
+        {
+            get { return AppDomainAssemblyTypeScanner.TypesOf<IElementGenerator>(true).FirstOrDefault() ?? typeof(DefaultElementGenerator); }
         }
 
         /// <summary>
@@ -450,7 +459,11 @@
         /// <returns>Collection of TypeRegistration types</returns>
         private IEnumerable<TypeRegistration> GetAdditionalTypes()
         {
-            return new[] { new TypeRegistration(typeof(IRootPathProvider), this.RootPathProvider) };
+            return new[] 
+            { 
+                new TypeRegistration(typeof(IRootPathProvider), this.RootPathProvider),
+                new TypeRegistration(typeof(IElementGenerator), this.ElementGenerator)
+            };
         }
 
         /// <summary>

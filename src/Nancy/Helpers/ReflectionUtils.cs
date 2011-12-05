@@ -27,6 +27,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Collections;
+using System.Linq.Expressions;
 
 namespace Nancy.Helpers
 {

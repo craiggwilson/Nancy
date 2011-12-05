@@ -6,6 +6,7 @@
 
     using Nancy.Security;
     using Nancy.ViewEngines;
+    using Nancy.Elements;
 
     using Xunit;
 
@@ -15,7 +16,7 @@
         public void Should_html_encode_string()
         {
             // Given
-            var context = new DefaultRenderContext(null, null, null);
+            var context = new DefaultRenderContext(null, null, null, null);
 
             // When
             var result = context.HtmlEncode("This is a string value & should be HTML-encoded");
@@ -31,7 +32,7 @@
             var cache = A.Fake<IViewCache>();
 
             // When
-            var context = new DefaultRenderContext(null, cache, null);
+            var context = new DefaultRenderContext(null, cache, null, null);
 
             // Then
             context.ViewCache.ShouldBeSameAs(cache);
@@ -43,7 +44,7 @@
             // Given
             const string viewName = "view.html";
             var resolver = A.Fake<IViewResolver>();
-            var context = new DefaultRenderContext(resolver, null, null);
+            var context = new DefaultRenderContext(resolver, null, null, null);
 
             // When
             context.LocateView(viewName, null);
@@ -58,7 +59,7 @@
             // Given
             var model = new object();
             var resolver = A.Fake<IViewResolver>();
-            var context = new DefaultRenderContext(resolver, null, null);
+            var context = new DefaultRenderContext(resolver, null, null, null);
 
             // When
             context.LocateView(null, model);
@@ -73,7 +74,7 @@
             // Given
             var locationContext = new ViewLocationContext();
             var resolver = A.Fake<IViewResolver>();
-            var context = new DefaultRenderContext(resolver, null, locationContext);
+            var context = new DefaultRenderContext(resolver, null, locationContext, null);
 
             // When
             context.LocateView(null, null);
@@ -89,7 +90,7 @@
             var viewResult = new ViewLocationResult(null, null, null, null);
             var resolver = A.Fake<IViewResolver>();
             A.CallTo(() => resolver.GetViewLocation(A<string>.Ignored, A<object>.Ignored, A<ViewLocationContext>.Ignored)).Returns(viewResult);
-            var context = new DefaultRenderContext(resolver, null, null);
+            var context = new DefaultRenderContext(resolver, null, null, null);
 
             // When
             var result = context.LocateView(null, null);
@@ -110,7 +111,7 @@
             var request = new Request("GET", url);
             var nancyContext = new NancyContext { Request = request };
             var viewLocationContext = new ViewLocationContext { Context = nancyContext };
-            var context = new DefaultRenderContext(null, null, viewLocationContext);
+            var context = new DefaultRenderContext(null, null, viewLocationContext, null);
 
             var result = context.ParsePath(input);
 
@@ -129,7 +130,7 @@
             var request = new Request("GET", url);
             var nancyContext = new NancyContext { Request = request };
             var viewLocationContext = new ViewLocationContext { Context = nancyContext };
-            var context = new DefaultRenderContext(null, null, viewLocationContext);
+            var context = new DefaultRenderContext(null, null, viewLocationContext, null);
 
             var result = context.ParsePath(input);
 
@@ -148,7 +149,7 @@
             var request = new Request("GET", url);
             var nancyContext = new NancyContext { Request = request };
             var viewLocationContext = new ViewLocationContext { Context = nancyContext };
-            var context = new DefaultRenderContext(null, null, viewLocationContext);
+            var context = new DefaultRenderContext(null, null, viewLocationContext, null);
 
             var result = context.ParsePath(input);
 
@@ -161,7 +162,7 @@
             var nancyContext = new NancyContext();
             nancyContext.Items[CsrfToken.DEFAULT_CSRF_KEY] = "testing";
             var viewLocationContext = new ViewLocationContext { Context = nancyContext };
-            var context = new DefaultRenderContext(null, null, viewLocationContext);
+            var context = new DefaultRenderContext(null, null, viewLocationContext, null);
 
             var result = context.GetCsrfToken();
 
@@ -176,7 +177,7 @@
             var nancyContext = new NancyContext();
             nancyContext.Items[CsrfToken.DEFAULT_CSRF_KEY] = new object();
             var viewLocationContext = new ViewLocationContext { Context = nancyContext };
-            var context = new DefaultRenderContext(null, null, viewLocationContext);
+            var context = new DefaultRenderContext(null, null, viewLocationContext, null);
 
             var result = Record.Exception(() => context.GetCsrfToken());
 
@@ -188,11 +189,20 @@
         {
             var nancyContext = new NancyContext();
             var viewLocationContext = new ViewLocationContext { Context = nancyContext };
-            var context = new DefaultRenderContext(null, null, viewLocationContext);
+            var context = new DefaultRenderContext(null, null, viewLocationContext, null);
 
             var result = Record.Exception(() => context.GetCsrfToken());
 
             result.ShouldBeOfType(typeof(InvalidOperationException));
+        }
+
+        [Fact]
+        public void Should_expose_an_element_generator_that_is_passed_in()
+        {
+            var generator = A.Fake<IElementGenerator>();
+            var context = new DefaultRenderContext(null, null, null, generator);
+
+            context.ElementGenerator.ShouldBeSameAs(generator);
         }
     }
 }

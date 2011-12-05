@@ -6,12 +6,14 @@
     using Nancy.Extensions;
     using Security;
     using Session;
+    using Elements;
 
     /// <summary>
     /// Default render context implementation.
     /// </summary>
     public class DefaultRenderContext : IRenderContext
     {
+        private readonly IElementGenerator elementGenerator;
         private readonly IViewResolver viewResolver;
         private readonly IViewCache viewCache;
         private readonly ViewLocationContext viewLocationContext;
@@ -19,14 +21,24 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="DefaultRenderContext"/> class.
         /// </summary>
-        /// <param name="viewResolver"></param>
-        /// <param name="viewCache"></param>
-        /// <param name="viewLocationContext"></param>
-        public DefaultRenderContext(IViewResolver viewResolver, IViewCache viewCache, ViewLocationContext viewLocationContext)
+        /// <param name="viewResolver">The view resolver.</param>
+        /// <param name="viewCache">The view cache.</param>
+        /// <param name="viewLocationContext">The view location context.</param>
+        /// <param name="elementGenerator">The element generator.</param>
+        public DefaultRenderContext(IViewResolver viewResolver, IViewCache viewCache, ViewLocationContext viewLocationContext, IElementGenerator elementGenerator)
         {
             this.viewResolver = viewResolver;
             this.viewCache = viewCache;
             this.viewLocationContext = viewLocationContext;
+            this.elementGenerator = elementGenerator;
+        }
+
+        /// <summary>
+        /// Gets the element generator.
+        /// </summary>
+        public IElementGenerator ElementGenerator
+        {
+            get { return this.elementGenerator; }
         }
 
         /// <summary>

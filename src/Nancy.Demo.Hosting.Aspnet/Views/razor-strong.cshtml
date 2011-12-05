@@ -7,5 +7,9 @@
     <h1>Hello @Model.FirstName</h1>
     <p>This is a strongly typed csharp razor view!</p>
     <img src='@Url.Content("~/content/face.png")' alt="Face"/>
+
+    @Html.LabelFor(x => x.FirstName)
+    @Html.DisplayFor(x => x.FirstName)
+    @Html.EditorFor(x => x.FirstName)
 </body>
 </html>

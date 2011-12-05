@@ -2,12 +2,14 @@
 {
     using Cryptography;
     using Session;
+    using Elements;
 
     /// <summary>
     /// Default render context factory implementation.
     /// </summary>
     public class DefaultRenderContextFactory : IRenderContextFactory
     {
+        private readonly IElementGenerator elementGenerator;
         private readonly IViewCache viewCache;
         private readonly IViewResolver viewResolver;
 
@@ -16,10 +18,12 @@
         /// </summary>
         /// <param name="viewCache">The view cache that should be used by the created render context.</param>
         /// <param name="viewResolver">The view resolver that should be sused by the created render context.</param>
-        public DefaultRenderContextFactory(IViewCache viewCache, IViewResolver viewResolver)
+        /// <param name="elementGenerator">The element generator.</param>
+        public DefaultRenderContextFactory(IViewCache viewCache, IViewResolver viewResolver, IElementGenerator elementGenerator)
         {
             this.viewCache = viewCache;
             this.viewResolver = viewResolver;
+            this.elementGenerator = elementGenerator;
         }
 
         /// <summary>
@@ -29,7 +33,7 @@
         /// <returns>A <see cref="IRenderContext"/> instance.</returns>
         public IRenderContext GetRenderContext(ViewLocationContext viewLocationContext)
         {
-            return new DefaultRenderContext(this.viewResolver, this.viewCache, viewLocationContext);
+            return new DefaultRenderContext(this.viewResolver, this.viewCache, viewLocationContext, this.elementGenerator);
         }
     }
 }

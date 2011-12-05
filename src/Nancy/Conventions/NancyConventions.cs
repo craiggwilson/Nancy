@@ -31,7 +31,15 @@
         /// </summary>
         public IList<Func<string, dynamic, ViewLocationContext, string>> ViewLocationConventions { get; set; }
 
+        /// <summary>
+        /// Gets or sets the conventions for locating static content.
+        /// </summary>
         public IList<Func<NancyContext, string, Response>> StaticContentsConventions { get; set; }
+
+        /// <summary>
+        /// Gets or sets the conventions for generating elements.
+        /// </summary>
+        public ElementGenerationConventions ElementGenerationConventions { get; set; }
 
         /// <summary>
         /// Validates the conventions
@@ -61,6 +69,7 @@
             {
                 new InstanceRegistration(typeof(ViewLocationConventions), new ViewLocationConventions(this.ViewLocationConventions)),
                 new InstanceRegistration(typeof(StaticContentsConventions), new StaticContentsConventions(this.StaticContentsConventions)), 
+                new InstanceRegistration(typeof(ElementGenerationConventions), this.ElementGenerationConventions)
             };
         }
 
