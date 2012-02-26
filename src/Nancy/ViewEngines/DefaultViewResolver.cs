@@ -36,10 +36,10 @@
         /// Locates a view based on the provided information.
         /// </summary>
         /// <param name="viewName">The name of the view to locate.</param>
-        /// <param name="model">The model that will be used with the view.</param>
+        /// <param name="modelContext">The model that will be used with the view.</param>
         /// <param name="viewLocationContext">A <see cref="ViewLocationContext"/> instance, containing information about the context for which the view is being located.</param>
         /// <returns>A <see cref="ViewLocationResult"/> instance if the view could be found, otherwise <see langword="null"/>.</returns>
-        public ViewLocationResult GetViewLocation(string viewName, dynamic model, ViewLocationContext viewLocationContext)
+        public ViewLocationResult GetViewLocation(string viewName, ModelContext modelContext, ViewLocationContext viewLocationContext)
         {
             if (string.IsNullOrEmpty(viewName))
             {
@@ -56,7 +56,7 @@
             foreach (var convention in conventions)
             {
                 var conventionBasedViewName =
-                    SafeInvokeConvention(convention, viewName, model, viewLocationContext);
+                    SafeInvokeConvention(convention, viewName, modelContext, viewLocationContext);
 
                 if (String.IsNullOrEmpty(conventionBasedViewName))
                 {
@@ -80,11 +80,11 @@
             return null;
         }
 
-        private static string SafeInvokeConvention(Func<string, object, ViewLocationContext, string> convention, string viewName, dynamic model, ViewLocationContext viewLocationContext)
+        private static string SafeInvokeConvention(Func<string, object, ViewLocationContext, string> convention, string viewName, ModelContext modelContext, ViewLocationContext viewLocationContext)
         {
             try
             {
-                return convention.Invoke(viewName, model, viewLocationContext);
+                return convention.Invoke(viewName, modelContext, viewLocationContext);
             }
             catch
             {

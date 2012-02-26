@@ -74,7 +74,7 @@ namespace Nancy.Diagnostics
             /// <param name="model">The model that will be used with the view.</param>
             /// <param name="viewLocationContext">A <see cref="ViewLocationContext"/> instance, containing information about the context for which the view is being located.</param>
             /// <returns>A <see cref="ViewLocationResult"/> instance if the view could be found, otherwise <see langword="null"/>.</returns>
-            public ViewLocationResult GetViewLocation(string viewName, dynamic model, ViewLocationContext viewLocationContext)
+            public ViewLocationResult GetViewLocation(string viewName, ModelContext modelContext, ViewLocationContext viewLocationContext)
             {
                 var fullName = string.Concat(viewName, ".sshtml");
 

@@ -49,22 +49,22 @@
             context.LocateView(viewName, null);
 
             // Then
-            A.CallTo(() => resolver.GetViewLocation(viewName, A<object>.Ignored, A<ViewLocationContext>.Ignored)).MustHaveHappened();
+            A.CallTo(() => resolver.GetViewLocation(viewName, A<ModelContext>.Ignored, A<ViewLocationContext>.Ignored)).MustHaveHappened();
         }
 
         [Fact]
         public void Should_call_view_resolver_with_model_when_locating_view()
         {
             // Given
-            var model = new object();
+            var modelContext = new ModelContext(new object());
             var resolver = A.Fake<IViewResolver>();
             var context = new DefaultRenderContext(resolver, null, null);
 
             // When
-            context.LocateView(null, model);
+            context.LocateView(null, modelContext);
 
             // Then
-            A.CallTo(() => resolver.GetViewLocation(A<string>.Ignored, model, A<ViewLocationContext>.Ignored)).MustHaveHappened();
+            A.CallTo(() => resolver.GetViewLocation(A<string>.Ignored, modelContext, A<ViewLocationContext>.Ignored)).MustHaveHappened();
         }
 
         [Fact]
@@ -79,7 +79,7 @@
             context.LocateView(null, null);
 
             // Then)
-            A.CallTo(() => resolver.GetViewLocation(A<string>.Ignored, A<object>.Ignored, locationContext)).MustHaveHappened();
+            A.CallTo(() => resolver.GetViewLocation(A<string>.Ignored, A<ModelContext>.Ignored, locationContext)).MustHaveHappened();
         }
 
         [Fact]
@@ -88,7 +88,7 @@
             // Given
             var viewResult = new ViewLocationResult(null, null, null, null);
             var resolver = A.Fake<IViewResolver>();
-            A.CallTo(() => resolver.GetViewLocation(A<string>.Ignored, A<object>.Ignored, A<ViewLocationContext>.Ignored)).Returns(viewResult);
+            A.CallTo(() => resolver.GetViewLocation(A<string>.Ignored, A<ModelContext>.Ignored, A<ViewLocationContext>.Ignored)).Returns(viewResult);
             var context = new DefaultRenderContext(resolver, null, null);
 
             // When

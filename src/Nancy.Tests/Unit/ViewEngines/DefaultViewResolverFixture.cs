@@ -54,7 +54,7 @@
             ViewLocationContext context = null;
 
             // When
-            var result = this.viewResolver.GetViewLocation("viewName", new object(), context);
+            var result = this.viewResolver.GetViewLocation("viewName", new ModelContext(new object()), context);
 
             // Then
             result.ShouldBeNull();
@@ -67,7 +67,7 @@
             string viewName = null;
 
             // When
-            var result = this.viewResolver.GetViewLocation(viewName, new object(), null);
+            var result = this.viewResolver.GetViewLocation(viewName, new ModelContext(new object()), null);
 
             // Then
             result.ShouldBeNull();
@@ -80,7 +80,7 @@
             var viewName = string.Empty;
 
             // When
-            var result = this.viewResolver.GetViewLocation(viewName, new object(), null);
+            var result = this.viewResolver.GetViewLocation(viewName, new ModelContext(new object()), null);
 
             // Then
             result.ShouldBeNull();
@@ -120,7 +120,7 @@
         {
             // Given
             const string viewName = "foo.html";
-            var viewModel = new object();
+            var modelContext = new ModelContext(new object());
 
             object modelPassedToFirstConvention = null;
             object modelPassedToSecondConvention = null;
@@ -139,11 +139,11 @@
                 }));
 
             // When
-            resolver.GetViewLocation(viewName, viewModel, this.viewLocationContext);
+            resolver.GetViewLocation(viewName, modelContext, this.viewLocationContext);
 
             // Then
-            modelPassedToFirstConvention.ShouldBeSameAs(viewModel);
-            modelPassedToSecondConvention.ShouldBeSameAs(viewModel);
+            modelPassedToFirstConvention.ShouldBeSameAs(modelContext);
+            modelPassedToSecondConvention.ShouldBeSameAs(modelContext);
         }
 
         [Fact]
