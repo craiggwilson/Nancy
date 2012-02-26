@@ -52,7 +52,7 @@ namespace Nancy.Tests.Unit.ViewEngines
             var factory = this.CreateFactory(viewEngines);
 
             // When
-            factory.RenderView("view.html", new object(), this.viewLocationContext);
+            factory.RenderView("view.html", new ModelContext(), this.viewLocationContext);
 
             // Then
             A.CallTo(() => this.renderContextFactory.GetRenderContext(A<ViewLocationContext>.Ignored)).MustHaveHappened();
@@ -77,7 +77,7 @@ namespace Nancy.Tests.Unit.ViewEngines
             var factory = this.CreateFactory(viewEngines);
 
             // When
-            factory.RenderView("view.html", new object(), this.viewLocationContext);
+            factory.RenderView("view.html", new ModelContext(), this.viewLocationContext);
 
             // Then
             A.CallTo(() => viewEngines[0].RenderView(A<ViewLocationResult>.Ignored, A<object>.Ignored, context)).MustHaveHappened();
@@ -99,7 +99,7 @@ namespace Nancy.Tests.Unit.ViewEngines
             var factory = this.CreateFactory(viewEngines);
 
             // When
-            factory.RenderView("view.html", new object(), this.viewLocationContext);
+            factory.RenderView("view.html", new ModelContext(), this.viewLocationContext);
 
             // Then
             A.CallTo(() => this.renderContextFactory.GetRenderContext(A<ViewLocationContext>.Ignored)).MustHaveHappened(Repeated.NoMoreThan.Once);
@@ -112,14 +112,14 @@ namespace Nancy.Tests.Unit.ViewEngines
             var factory = this.CreateFactory(null);
 
             // When
-            var exception = Record.Exception(() => factory.RenderView("viewName", new object(), null));
+            var exception = Record.Exception(() => factory.RenderView("viewName", new ModelContext(), null));
 
             // Then
             exception.ShouldBeOfType<ArgumentNullException>();
         }
 
         [Fact]
-        public void Should_throw_argumentexception_when_rendering_view_and_view_name_is_empty_and_model_is_null()
+        public void Should_throw_argumentexception_when_rendering_view_and_view_name_is_empty_and_modelContext_is_null()
         {
             // Given
             var factory = this.CreateFactory(null);
@@ -162,13 +162,13 @@ namespace Nancy.Tests.Unit.ViewEngines
         {
             // Given
             var factory = this.CreateFactory();
-            var model = new object();
+            var modelContext = new ModelContext();
 
             // When
-            Record.Exception(() => factory.RenderView(null, model, this.viewLocationContext));
+            Record.Exception(() => factory.RenderView(null, modelContext, this.viewLocationContext));
 
             // Then
-            A.CallTo(() => this.resolver.GetViewLocation(A<string>.Ignored, model, A<ViewLocationContext>.Ignored)).MustHaveHappened();
+            A.CallTo(() => this.resolver.GetViewLocation(A<string>.Ignored, modelContext, A<ViewLocationContext>.Ignored)).MustHaveHappened();
         }
 
         [Fact]
@@ -176,7 +176,7 @@ namespace Nancy.Tests.Unit.ViewEngines
         {
             // Given
             var factory = this.CreateFactory();
-            var model = new object();
+            var modelContext = new ModelContext();
 
             var viewContext = 
                 new ViewLocationContext
@@ -186,7 +186,7 @@ namespace Nancy.Tests.Unit.ViewEngines
                 };
 
             // When
-            Record.Exception(() => factory.RenderView(null, model, viewContext));
+            Record.Exception(() => factory.RenderView(null, modelContext, viewContext));
 
             // Then
             A.CallTo(() => this.resolver.GetViewLocation(A<string>.Ignored, A<object>.Ignored, A<ViewLocationContext>.That.Matches(x => x.ModulePath.Equals("/bar")))).MustHaveHappened();
@@ -288,7 +288,7 @@ namespace Nancy.Tests.Unit.ViewEngines
         }
 
         [Fact]
-        public void Should_invoke_view_engine_with_model()
+        public void Should_invoke_view_engine_with_modelContext()
         {
             // Given
             var viewEngines = new[] {
@@ -301,14 +301,14 @@ namespace Nancy.Tests.Unit.ViewEngines
             var location = new ViewLocationResult("location", "name", "html", GetEmptyContentReader());
             A.CallTo(() => this.resolver.GetViewLocation(A<string>.Ignored, A<object>.Ignored, A<ViewLocationContext>.Ignored)).Returns(location);
 
-            var model = new object();
+            var modelContext = new ModelContext();
             var factory = this.CreateFactory(viewEngines);
 
             // When
-            factory.RenderView("foo", model, this.viewLocationContext);
+            factory.RenderView("foo", modelContext, this.viewLocationContext);
 
             // Then
-            A.CallTo(() => viewEngines[0].RenderView(A<ViewLocationResult>.Ignored, model, A<IRenderContext>.Ignored)).MustHaveHappened();
+            A.CallTo(() => viewEngines[0].RenderView(A<ViewLocationResult>.Ignored, modelContext, A<IRenderContext>.Ignored)).MustHaveHappened();
         }
 
         [Fact]
@@ -324,14 +324,14 @@ namespace Nancy.Tests.Unit.ViewEngines
             var location = new ViewLocationResult("location", "name", "html", GetEmptyContentReader());
             A.CallTo(() => this.resolver.GetViewLocation(A<string>.Ignored, A<object>.Ignored, A<ViewLocationContext>.Ignored)).Returns(location);
 
-            var model = new { Name = "" };
+            var modelContext = new ModelContext(new { Name = "" });
             var factory = this.CreateFactory(viewEngines);
 
             // When
-            factory.RenderView("foo", model, this.viewLocationContext);
+            factory.RenderView("foo", modelContext, this.viewLocationContext);
 
             // Then
-            A.CallTo(() => viewEngines[0].RenderView(A<ViewLocationResult>.Ignored, A<object>.That.Matches(x => x.GetType().Equals(typeof(ExpandoObject))), A<IRenderContext>.Ignored)).MustHaveHappened();
+            A.CallTo(() => viewEngines[0].RenderView(A<ViewLocationResult>.Ignored, A<ModelContext>.That.Matches(x => x.Model.GetType().Equals(typeof(ExpandoObject))), A<IRenderContext>.Ignored)).MustHaveHappened();
         }
 
         [Fact]
@@ -345,27 +345,27 @@ namespace Nancy.Tests.Unit.ViewEngines
             var location = new ViewLocationResult("location", "name", "html", GetEmptyContentReader());
             A.CallTo(() => this.resolver.GetViewLocation(A<string>.Ignored, A<object>.Ignored, A<ViewLocationContext>.Ignored)).Returns(location);
 
-            var model = new { Name = "Nancy" };
+            var modelContext = new ModelContext(new { Name = "Nancy" });
             var factory = this.CreateFactory(viewEngines);
 
             // When
-            factory.RenderView("foo", model, this.viewLocationContext);
+            factory.RenderView("foo", modelContext, this.viewLocationContext);
 
             // Then
             ((string)viewEngines[0].Model.Name).ShouldEqual("Nancy");
         }
 
         [Fact]
-        public void Should_use_the_name_of_the_model_type_as_view_name_when_only_model_is_specified()
+        public void Should_use_the_name_of_the_model_type_as_view_name_when_only_modelContext_is_specified()
         {
             // Given
             var factory = this.CreateFactory();
 
             // When
-            Record.Exception(() => factory.RenderView(null, new object(), this.viewLocationContext));
+            Record.Exception(() => factory.RenderView(null, new ModelContext(new object()), this.viewLocationContext));
 
             // Then
-            A.CallTo(() => this.resolver.GetViewLocation("Object", A<object>.Ignored, A<ViewLocationContext>.Ignored)).MustHaveHappened();
+            A.CallTo(() => this.resolver.GetViewLocation("Object", A<ModelContext>.Ignored, A<ViewLocationContext>.Ignored)).MustHaveHappened();
         }
 
         [Fact]
@@ -375,10 +375,10 @@ namespace Nancy.Tests.Unit.ViewEngines
             var factory = this.CreateFactory();
 
             // When
-            Record.Exception(() => factory.RenderView(null, new ViewModel(), this.viewLocationContext));
+            Record.Exception(() => factory.RenderView(null, new ModelContext(new ViewModel()), this.viewLocationContext));
 
             // Then
-            A.CallTo(() => this.resolver.GetViewLocation("View", A<object>.Ignored, A<ViewLocationContext>.Ignored)).MustHaveHappened();
+            A.CallTo(() => this.resolver.GetViewLocation("View", A<ModelContext>.Ignored, A<ViewLocationContext>.Ignored)).MustHaveHappened();
         }
 
         [Fact]

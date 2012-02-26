@@ -37,17 +37,17 @@
         /// Renders the view with the name and model defined by the <paramref name="viewName"/> and <paramref name="model"/> parameters.
         /// </summary>
         /// <param name="viewName">The name of the view to render.</param>
-        /// <param name="model">The model that should be passed into the view.</param>
+        /// <param name="model">The model context that will be passed onto the view.</param>
         /// <param name="viewLocationContext">A <see cref="ViewLocationContext"/> instance, containing information about the context for which the view is being rendered.</param>
         /// <returns>A delegate that can be invoked with the <see cref="Stream"/> that the view should be rendered to.</returns>
-        public Response RenderView(string viewName, dynamic model, ViewLocationContext viewLocationContext)
+        public Response RenderView(string viewName, ModelContext modelContext, ViewLocationContext viewLocationContext)
         {
-            if (viewName == null && model == null)
+            if (viewName == null && modelContext == null)
             {
                 throw new ArgumentException("View name and model parameters cannot both be null.");
             }
 
-            if (model == null && viewName.Length == 0)
+            if (modelContext == null && viewName.Length == 0)
             {
                 throw new ArgumentException("The view name parameter cannot be empty when the model parameters is null.");
             }
@@ -57,18 +57,18 @@
                 throw new ArgumentNullException("viewLocationContext", "The value of the viewLocationContext parameter cannot be null.");
             }
 
-            var actualViewName = 
-                viewName ?? GetViewNameFromModel(model, viewLocationContext.Context);
+            var actualViewName =
+                viewName ?? GetViewNameFromModel(modelContext, viewLocationContext.Context);
 
             viewLocationContext.Context.Trace.TraceLog.WriteLog(x => x.AppendLine(string.Concat("[DefaultViewFactory] Rendering view with name ", actualViewName)));
 
-            return this.GetRenderedView(actualViewName, model, viewLocationContext);
+            return this.GetRenderedView(actualViewName, modelContext, viewLocationContext);
         }
 
-        private Response GetRenderedView(string viewName, dynamic model, ViewLocationContext viewLocationContext)
+        private Response GetRenderedView(string viewName, ModelContext modelContext, ViewLocationContext viewLocationContext)
         {
             var viewLocationResult =
-                this.viewResolver.GetViewLocation(viewName, model, viewLocationContext);
+                this.viewResolver.GetViewLocation(viewName, modelContext, viewLocationContext);
 
             var resolvedViewEngine = 
                 GetViewEngine(viewLocationResult, viewLocationContext.Context);
@@ -81,17 +81,22 @@
 
             viewLocationContext.Context.Trace.TraceLog.WriteLog(x => x.AppendLine(string.Concat("[DefaultViewFactory] Rendering view with view engine ", resolvedViewEngine.GetType().FullName)));
 
+            EnsureSafeModel(modelContext);
+
             return SafeInvokeViewEngine(
                 resolvedViewEngine,
                 viewLocationResult,
-                GetSafeModel(model),
+                modelContext,
                 this.renderContextFactory.GetRenderContext(viewLocationContext)
             );
         }
 
-        private static object GetSafeModel(object model)
+        private static void EnsureSafeModel(ModelContext modelContext)
         {
-            return (model.IsAnonymousType()) ? GetExpandoObject(model) : model;
+            if (modelContext != null && modelContext.Model != null && modelContext.Model.IsAnonymousType())
+            {
+                modelContext.SetModel(GetExpandoObject(modelContext.Model));
+            }
         }
 
         private static ExpandoObject GetExpandoObject(object source)
@@ -124,18 +129,18 @@
             return matchingViewEngines.FirstOrDefault();
         }
 
-        private static string GetViewNameFromModel(dynamic model, NancyContext context)
+        private static string GetViewNameFromModel(ModelContext modelContext, NancyContext context)
         {
-            context.Trace.TraceLog.WriteLog(x => x.AppendLine(string.Concat("[DefaultViewFactory] Extracting view name from model of type ", model.GetType().FullName)));
+            context.Trace.TraceLog.WriteLog(x => x.AppendLine(string.Concat("[DefaultViewFactory] Extracting view name from model of type ", modelContext.Model.GetType().FullName)));
 
-            return Regex.Replace(model.GetType().Name, "Model$", string.Empty);
+            return Regex.Replace(modelContext.Model.GetType().Name, "Model$", string.Empty);
         }
 
-        private static Response SafeInvokeViewEngine(IViewEngine viewEngine, ViewLocationResult locationResult, dynamic model, IRenderContext renderContext)
+        private static Response SafeInvokeViewEngine(IViewEngine viewEngine, ViewLocationResult locationResult, ModelContext modelContext, IRenderContext renderContext)
         {
             try
             {
-                return viewEngine.RenderView(locationResult, model, renderContext);
+                return viewEngine.RenderView(locationResult, modelContext, renderContext);
             }
             catch (Exception)
             {

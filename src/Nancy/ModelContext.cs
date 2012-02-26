@@ -102,7 +102,7 @@
             if (Object.ReferenceEquals(this.Model, model))
                 return;
 
-            this.SetModel(model, ModelValidationResult.Valid);
+            this.SetModel(model, this.validationResult);
         }
 
         /// <summary>
@@ -112,7 +112,7 @@
         /// <param name="result">The result.</param>
         public void SetModel(object model, ModelValidationResult result)
         {
-            this.Model = GetSafeModel(model);
+            this.Model = model;
             this.validationResult = result ?? ModelValidationResult.Valid;
         }
 
@@ -237,26 +237,6 @@
             }
 
             return false;
-        }
-
-        private static object GetSafeModel(object model)
-        {
-            return (model != null && model.GetType().IsAnonymousType()) 
-                ? GetExpandoObject(model) 
-                : model;
-        }
-
-        private static ExpandoObject GetExpandoObject(object source)
-        {
-            var expandoObject = new ExpandoObject();
-            IDictionary<string, object> results = expandoObject;
-
-            foreach (var propertyInfo in source.GetType().GetProperties())
-            {
-                results[propertyInfo.Name] = propertyInfo.GetValue(source, null);
-            }
-
-            return expandoObject;
         }
     }
 }
